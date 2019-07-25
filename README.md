@@ -88,6 +88,7 @@ EXCLUDE_URL_MINIFIFICATION = ['']
 MINIFY_CLASS_HTML =  False # Change it to True in production environment
 # By default, the admin files classes won't be minified.
 STATIC_CLASSES_FILE_NAME = 'data.json' # It should be an json file
+EXCLUDED_CLASSNAMES_FROM_MINIFYING = ['']
 
 STATIC_COMPRESS_FILE_EXTS = ['js', 'css', 'svg']
 STATIC_COMPRESS_METHODS = ['gz', 'br']

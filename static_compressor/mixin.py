@@ -60,8 +60,13 @@ class CompressMixin:
         self.json_file_name = getattr(
             settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
 
-        self.not_included_words = ['ttf', 'woff2', 'www', 'woff', 'js', 'otf', 'eot',
+        self.not_included_words_by_users = getattr(
+            settings, "EXCLUDED_CLASSNAMES_FROM_MINIFYING", [])
+
+        self.not_included_words_by_default = ['ttf', 'woff2', 'www', 'woff', 'js', 'otf', 'eot',
                                    'svg', 'com', 'in', 'css', 'add', 'contains', 'remove', 'toggle', 'move']
+
+        self.not_included_words = self.not_included_words_by_users + self.not_included_words_by_default
 
         if os.path.exists(self.static_root) and os.path.isdir(self.static_root):
             shutil.rmtree(self.static_root)
