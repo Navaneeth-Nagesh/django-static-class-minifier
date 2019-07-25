@@ -44,10 +44,10 @@ class MinifyClassMiddleware:
 
                 for (key, value) in self.data.items():
                     inline_style = re.sub(r'\.{key}'.format(
-                        key=re.escape(key)), '.{value}'.format(value=re.escape(value)), inline_style)
+                        key=re.escape(key)), '.{value}'.format(value=value), inline_style)
 
                 content = re.sub(r'{key}'.format(
-                    key=re.escape(original_style)), re.escape(inline_style), content)
+                    key=re.escape(original_style)), inline_style, content)
 
             for class_attribute in all_class_attributes:
                 minified_classes_in_attribute = [
