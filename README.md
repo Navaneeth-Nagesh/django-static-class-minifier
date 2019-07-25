@@ -87,6 +87,7 @@ EXCLUDE_STATIC_CSS_FILES = ['']
 EXCLUDE_URL_MINIFIFICATION = ['']
 MINIFY_CLASS_HTML =  False # Change it to True in production environment
 # By default, the admin files classes won't be minified.
+STATIC_CLASSES_FILE_NAME = 'data.json' # It should be an json file
 
 STATIC_COMPRESS_FILE_EXTS = ['js', 'css', 'svg']
 STATIC_COMPRESS_METHODS = ['gz', 'br']
@@ -107,4 +108,4 @@ In case, if you just to use brotli and gzip compression without using class mini
 The author of django-static-compress [Manatsawin Hanmongkolchai](https://github.com/whs)
 
 ### Licence
-Licensed under the [MIT License](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/LICENSE)
+Licensed under the [MIT License](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/LICENCE)

@@ -14,8 +14,16 @@ class Command(BaseCommand):
     help = 'minify all classes'
 
     def handle(self, *args, **kwargs):
-        with open('data.json') as f:
-            data = json.load(f)
+
+        self.json_file_name = getattr(
+            settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
+
+        try:
+            with open(self.json_file_name) as f:
+                data = json.load(f)
+        except:
+            print('{file_name} file is not found'.format(
+                file_name=self.json_file_name))
 
         self.static_root = getattr(
             settings, "STATIC_ROOT", ".")

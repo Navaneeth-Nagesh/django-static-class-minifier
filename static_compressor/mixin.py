@@ -57,6 +57,9 @@ class CompressMixin:
         self.exclude_css_files = getattr(
             settings, "EXCLUDE_STATIC_CSS_FILES", [])
 
+        self.json_file_name = getattr(
+            settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
+
         self.not_included_words = ['ttf', 'woff2', 'www', 'woff', 'js', 'otf', 'eot',
                                    'svg', 'com', 'in', 'css', 'add', 'contains', 'remove', 'toggle', 'move']
 
@@ -245,12 +248,12 @@ class CompressMixin:
 
         sorted_by_key_length = dict(
             sorted(sorted_by_value.items(), key=lambda x: len(x[0]), reverse=True))
-
-        with open('data.json', 'w') as outfile:
+        
+        with open(self.json_file_name, 'w') as outfile:
             json.dump(sorted_by_key_length, outfile,
                       indent=4, separators=(',', ':'))
 
-        print('created a data.json file!')
+        print('created {file_name} file!'.format(file_name=self.json_file_name))
 
     def _get_dest_path(self, path):
         if hasattr(self, "hashed_name"):

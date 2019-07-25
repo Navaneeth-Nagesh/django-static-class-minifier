@@ -7,14 +7,22 @@ from django.conf import settings
 class MinifyClassMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        with open('data.json') as f:
-            self.data = json.load(f)
 
         self.not_allowed_url_minification = getattr(
             settings, "EXCLUDE_URL_MINIFIFICATION", [])
 
         self.should_minify = getattr(
             settings, "MINIFY_CLASS_HTML", False)
+
+        self.json_file_name = getattr(
+            settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
+
+        if self.should_minify:
+            try:
+                with open(self.json_file_name) as f:
+                    self.data = json.load(f)
+            except:
+                print('{file_name} file is not found'.format(file_name=self.json_file_name))
 
 
     def __call__(self, request):
