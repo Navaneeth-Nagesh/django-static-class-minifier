@@ -4,7 +4,7 @@
 
 The class minifier package shortens the class name in the DOM to single character and reduces the file size. more about the algorithm in the upcoming blog post.
 
-End result : ![Alt](/Navaneeth-Nagesh/django-static-class-minifier/blob/master/snap/example.JPG?raw=true  "Example")
+End result : ![Alt](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/snaps/example.JPG?raw=true  "Example")
 
 
 ### Installation
