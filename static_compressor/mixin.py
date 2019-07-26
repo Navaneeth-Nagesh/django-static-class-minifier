@@ -57,6 +57,8 @@ class CompressMixin:
             settings, "EXCLUDE_STATIC_JS_FILES", [])
         self.exclude_css_files = getattr(
             settings, "EXCLUDE_STATIC_CSS_FILES", [])
+        self.exclude_svg_files = getattr(
+            settings, "EXCLUDE_STATIC_SVG_FILES", [])
 
         self.json_file_name = getattr(
             settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
@@ -65,7 +67,7 @@ class CompressMixin:
             settings, "EXCLUDED_CLASSNAMES_FROM_MINIFYING", [])
 
         self.not_included_words_by_default = ['ttf', 'woff2', 'www', 'woff', 'js', 'otf', 'eot',
-                                   'svg', 'com', 'in', 'css', 'add', 'contains', 'remove', 'toggle', 'move']
+                                   'svg', 'com', 'in', 'css', 'add', 'contains', 'remove', 'toggle', 'move', 'fonts', 'static', 'gstatic', 'manager', 'tag', 'google']
 
         self.not_included_words = self.not_included_words_by_users + self.not_included_words_by_default
 
@@ -138,7 +140,7 @@ class CompressMixin:
         if destination.endswith('.css') or original_file.endswith('.css') and original_file not in self.exclude_css_files:
             read_css_file = file.read().decode('utf-8')
 
-            if self.exists(destination) and destination.endswith('.css') or original_file.endswith('.css'):
+            if self.exists(destination):
                 file.close()
                 self.delete(destination)
                 self.delete(original_file)
@@ -159,7 +161,7 @@ class CompressMixin:
         elif destination.endswith('.js') or original_file.endswith('.js') and original_file not in self.exclude_js_files:
             read_js_file = file.read().decode('utf-8')
 
-            if self.exists(destination) and destination.endswith('.js') or original_file.endswith('.js'):
+            if self.exists(destination):
                 file.close()
                 self.delete(destination)
                 self.delete(original_file)
@@ -170,7 +172,7 @@ class CompressMixin:
 
             for class_attribute in all_class_attributes:
                 minified_classes_in_attribute = [
-                    data[class_name] if class_name in data else class_name for class_name in class_attribute[7:-1].split()]
+                    self.data[class_name] if class_name in self.data else class_name for class_name in class_attribute[7:-1].split()]
                 new_attribute = 'class="' + \
                     ' '.join(minified_classes_in_attribute) + '"'
                 read_js_file = re.sub(
@@ -255,10 +257,10 @@ class CompressMixin:
 
             return new_file
 
-        elif destination.endswith('.svg') or original_file.endswith('.svg'):
+        elif destination.endswith('.svg') or original_file.endswith('.svg') and original_file not in self.exclude_svg_files:
             read_svg_file = file.read().decode('utf-8')
 
-            if self.exists(destination) and destination.endswith('.svg') or original_file.endswith('.svg'):
+            if self.exists(destination):
                 file.close()
                 self.delete(destination)
                 self.delete(original_file)
@@ -289,7 +291,7 @@ class CompressMixin:
             return destination
 
     def post_process(self, paths, dry_run=False, **options):
-        
+       
         if hasattr(super(), "post_process"):
             yield from super().post_process(paths, dry_run, **options)
 
@@ -301,27 +303,29 @@ class CompressMixin:
                 self._create_json_file(path)
 
         self._json_creation()
-        
+       
         with open(self.json_file_name) as f:
             self.data = json.load(f)
 
             for name in paths.keys():
-                if not self._is_file_allowed(name):
-                    continue
 
                 source_storage, path = paths[name]
-
-                # Process if file is big enough
-                if os.path.getsize(self.path(path)) < self.minimum_kb * 1024:
-                    continue
-                src_mtime = source_storage.get_modified_time(path)
+                
                 dest_path = self._get_dest_path(path)
                 with self._open(dest_path) as file:
                     new_file = file
-                    if not path.startswith('admin') and not path.startswith('node_modules'):
+                    if not path.startswith('admin'):
                         new_path = self._minify(file, dest_path, name)
                         new_file = self._open(new_path)
-                       
+
+                    if not self._is_file_allowed(name):
+                        continue
+
+                    # Process if file is big enough
+                    if os.path.getsize(self.path(path)) < self.minimum_kb * 1024:
+                        continue
+
+                    src_mtime = source_storage.get_modified_time(path)
                     for compressor in self.compressors:
                         dest_compressor_path = "{}.{}".format(
                             dest_path, compressor.extension)
@@ -379,14 +383,15 @@ class CompressMixin:
                     self.collection_of_classes.append(word)
 
         if file.endswith('.svg'):
-            with self._open(file) as current_file:
-                read_svg_file = current_file.read().decode('utf-8').strip()
+            if file not in self.exclude_svg_files:
+                with self._open(file) as current_file:
+                    read_svg_file = current_file.read().decode('utf-8').strip()
 
-                regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
-                all_classes = regex.findall(read_svg_file)
-                for class_instance in all_classes:
-                    for class_name in class_instance[7:-1].split():
-                        self.collection_of_classes.append(class_name)
+                    regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
+                    all_classes = regex.findall(read_svg_file)
+                    for class_instance in all_classes:
+                        for class_name in class_instance[7:-1].split():
+                            self.collection_of_classes.append(class_name)
                 
         if file.endswith('.js') and not file in self.exclude_js_files:
             with self._open(file) as current_file:

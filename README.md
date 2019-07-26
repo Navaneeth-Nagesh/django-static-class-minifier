@@ -82,6 +82,7 @@ _django-static-class-minifier_ settings and their default values:
 ```
 EXCLUDE_STATIC_JS_FILES = [''] # exclude libraries from classnames minifier
 EXCLUDE_STATIC_CSS_FILES = ['']
+EXCLUDE_STATIC_SVG_FILES = ['']
 EXCLUDE_URL_MINIFIFICATION = ['']
 MINIFY_CLASS_HTML =  False # Change it to True in production environment
 # By default, the admin files classes won't be minified.
@@ -108,3 +109,5 @@ The author of django-static-compress [Manatsawin Hanmongkolchai](https://github.
 
 ### Licence
 Licensed under the [MIT License](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/LICENCE)
+
+_Happy coding! :)_
