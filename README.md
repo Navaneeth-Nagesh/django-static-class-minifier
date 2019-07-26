@@ -59,8 +59,6 @@ classList.toggle('active');
 
 If your adding classes to the DOM based on http response or a common function which appends class to the dom, then consider excluding those files. Right now that's the limitation of this project. In the future, There might be a syntax to consider those classes.
 
-And run `$ Python manage.py minify` to minify all the classes in the static root directory.
-
 Make sure that your web server is configured to serve precompressed static files:
 
 * If using nginx:
@@ -82,7 +80,7 @@ By default it will only compress files ending with `.js`, `.css` and `.svg`. Thi
 _django-static-class-minifier_ settings and their default values:
 
 ```
-EXCLUDE_STATIC_JS_FILES = ['']
+EXCLUDE_STATIC_JS_FILES = [''] # exclude libraries from classnames minifier
 EXCLUDE_STATIC_CSS_FILES = ['']
 EXCLUDE_URL_MINIFIFICATION = ['']
 MINIFY_CLASS_HTML =  False # Change it to True in production environment
@@ -105,7 +103,7 @@ After brotli and Gzip compression - 40k style.css.gz (60% reduction in file size
 ```
 ### Credits
 I have merged the code with django-static-compress package to enable gzip and brotli compression.
-In case, if you just to use brotli and gzip compression without using class minifier. You can directly use [https://github.com/whs/django-static-compress](https://github.com/whs/django-static-compress)
+In case, if you just use brotli and gzip compression without using class minifier. You can use [django-static-compress](https://github.com/whs/django-static-compress)
 The author of django-static-compress [Manatsawin Hanmongkolchai](https://github.com/whs)
 
 ### Licence

@@ -10,9 +10,10 @@ import errno
 import shutil
 
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files.base import ContentFile
+from django.contrib.staticfiles.storage import StaticFilesStorage
 
 from static_compressor import compressors
-from django.contrib.staticfiles.storage import StaticFilesStorage
 
 __all__ = ["CompressMixin"]
 
@@ -107,7 +108,188 @@ class CompressMixin:
         alt = self.get_alternate_compressed_path(name)
         return self._datetime_from_timestamp(getmtime(alt))
 
+    def create_dictionary_of_selectors(self, selector_collection):
+        dictionary = dict()
+
+        for instance in selector_collection:
+            x = instance
+
+            for (key, value) in self.data.items():
+                instance = re.sub(r'\.{key}'.format(
+                    key=re.escape(key)), '.{value}'.format(value=re.escape(value)), instance)
+                dictionary[x] = instance
+
+        return dictionary
+
+    def create_dictionary_of_non_dot_selector(self, selector_collection):
+        dictionary = dict()
+
+        for instance in selector_collection:
+            x = instance
+
+            for (key, value) in self.data.items():
+                instance = re.sub(r'{key}'.format(
+                    key=re.escape(key)), '{value}'.format(value=re.escape(value)), instance)
+                dictionary[x] = instance
+
+        return dictionary
+
+    def _minify(self, file, destination, original_file):
+        if destination.endswith('.css') or original_file.endswith('.css') and original_file not in self.exclude_css_files:
+            read_css_file = file.read().decode('utf-8')
+
+            if self.exists(destination) and destination.endswith('.css') or original_file.endswith('.css'):
+                file.close()
+                self.delete(destination)
+                self.delete(original_file)
+
+            # To remove stream of comments
+            read_css_file = re.sub(re.compile(
+                "/\*.*?\*/", re.DOTALL), '', read_css_file)
+
+            for (key, value) in self.data.items():
+                read_css_file = re.sub(r'\.{key}'.format(
+                    key=re.escape(key)), '.{value}'.format(value=re.escape(value)), read_css_file)
+
+            content_file = ContentFile(read_css_file.encode())
+            self._save(original_file, content_file)
+            new_file = self._save(destination, content_file)
+            return new_file
+
+        elif destination.endswith('.js') or original_file.endswith('.js') and original_file not in self.exclude_js_files:
+            read_js_file = file.read().decode('utf-8')
+
+            if self.exists(destination) and destination.endswith('.js') or original_file.endswith('.js'):
+                file.close()
+                self.delete(destination)
+                self.delete(original_file)
+
+            html_class_regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
+            all_class_attributes = html_class_regex.findall(
+                read_js_file)
+
+            for class_attribute in all_class_attributes:
+                minified_classes_in_attribute = [
+                    data[class_name] if class_name in data else class_name for class_name in class_attribute[7:-1].split()]
+                new_attribute = 'class="' + \
+                    ' '.join(minified_classes_in_attribute) + '"'
+                read_js_file = re.sub(
+                    class_attribute, new_attribute, read_js_file)
+
+            get_selector_regex = re.compile(
+                r'querySelector\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
+
+            selector_collection = get_selector_regex.findall(
+                read_js_file)
+
+            querySelector = self.create_dictionary_of_selectors(selector_collection)
+
+            for (key, value) in querySelector.items():
+                read_js_file = re.sub(
+                    re.escape(key), value, read_js_file)
+
+            get_selector_all_regex = re.compile(
+                r'querySelectorAll\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
+            selector_all_collection = get_selector_all_regex.findall(
+                read_js_file)
+
+            querySelector_all = self.create_dictionary_of_selectors(selector_all_collection)
+
+            for (key, value) in querySelector_all.items():
+                read_js_file = re.sub(
+                    re.escape(key), value, read_js_file)
+
+            get_element_by_classname_regex = re.compile(
+                r'getElementsByClassName\([\'\"][^\'\"]*?[^\'\"]*?[\'\"]\)')
+            class_collection = get_element_by_classname_regex.findall(
+                read_js_file)
+
+            get_elements_by_classes = self.create_dictionary_of_non_dot_selector(class_collection)
+
+            for (key, value) in get_elements_by_classes.items():
+                read_js_file = re.sub(
+                    re.escape(key), value, read_js_file)
+
+            class_list_add_elements_regex = re.compile(
+                r'classList.add\([\'\"][^\'\"]*?[^\'\"]*?[\'\"]\)')
+            class_list_contains_elements_regex = re.compile(
+                r'classList.contains\([\'\"][^\'\"]*?[^\'\"]*?[\'\"]\)')
+            class_list_remove_elements_regex = re.compile(
+                r'classList.remove\([\'\"][^\'\"]*?[^\'\"]*?[\'\"]\)')
+            class_list_toggle_elements_regex = re.compile(
+                r'classList.toggle\([\'\"][^\'\"]*?[^\'\"]*?[\'\"]\)')
+
+            class_list_add_collection = class_list_add_elements_regex.findall(
+                read_js_file)
+            class_list_remove_collection = class_list_remove_elements_regex.findall(
+                read_js_file)
+            class_list_contains_collection = class_list_contains_elements_regex.findall(
+                read_js_file)
+            class_list_toggle_collection = class_list_toggle_elements_regex.findall(
+                read_js_file)
+
+            classlist_add = self.create_dictionary_of_non_dot_selector(class_list_add_collection)
+            classlist_remove = self.create_dictionary_of_non_dot_selector(class_list_remove_collection)
+            classlist_contains = self.create_dictionary_of_non_dot_selector(class_list_contains_collection)
+            classlist_toggle = self.create_dictionary_of_non_dot_selector(class_list_toggle_collection)
+
+            for (key, value) in classlist_add.items():
+                read_js_file = re.sub(
+                    re.escape(key), value, read_js_file)
+
+            for (key, value) in classlist_remove.items():
+                read_js_file = re.sub(
+                    re.escape(key), value, read_js_file)
+
+            for (key, value) in classlist_contains.items():
+                read_js_file = re.sub(
+                    re.escape(key), value, read_js_file)
+
+            for (key, value) in classlist_toggle.items():
+                read_js_file = re.sub(
+                    re.escape(key), value, read_js_file)
+
+            content_file = ContentFile(read_js_file.encode())
+            self._save(original_file, content_file)
+            new_file = self._save(destination, content_file)
+
+            return new_file
+
+        elif destination.endswith('.svg') or original_file.endswith('.svg'):
+            read_svg_file = file.read().decode('utf-8')
+
+            if self.exists(destination) and destination.endswith('.svg') or original_file.endswith('.svg'):
+                file.close()
+                self.delete(destination)
+                self.delete(original_file)
+
+            regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
+
+            all_class_attributes = regex.findall(read_svg_file)
+
+            for class_attribute in all_class_attributes:
+                minified_classes_in_attribute = [
+                    self.data[class_name] if class_name in self.data else class_name for class_name in class_attribute[7:-1].split()]
+                new_attribute = 'class="' + \
+                    ' '.join(minified_classes_in_attribute) + '"'
+                read_svg_file = re.sub(
+                    class_attribute, new_attribute, read_svg_file)
+
+            
+            for (key, value) in self.data.items():
+                read_svg_file = re.sub(r'\.{key}'.format(
+                    key=re.escape(key)), '.{value}'.format(value=re.escape(value)), read_svg_file)
+            
+            content_file = ContentFile(read_svg_file.encode())
+            self._save(original_file, content_file)
+            new_file = self._save(destination, content_file)
+
+            return new_file
+        else:
+            return destination
+
     def post_process(self, paths, dry_run=False, **options):
+        
         if hasattr(super(), "post_process"):
             yield from super().post_process(paths, dry_run, **options)
 
@@ -119,75 +301,82 @@ class CompressMixin:
                 self._create_json_file(path)
 
         self._json_creation()
+        
+        with open(self.json_file_name) as f:
+            self.data = json.load(f)
 
-        for name in paths.keys():
-            if not self._is_file_allowed(name):
-                continue
+            for name in paths.keys():
+                if not self._is_file_allowed(name):
+                    continue
 
-            source_storage, path = paths[name]
-          
-            # Process if file is big enough
-            if os.path.getsize(self.path(path)) < self.minimum_kb * 1024:
-                continue
-            src_mtime = source_storage.get_modified_time(path)
-            dest_path = self._get_dest_path(path)
-            with self._open(dest_path) as file:
-                for compressor in self.compressors:
-                    dest_compressor_path = "{}.{}".format(
-                        dest_path, compressor.extension)
-                    # Check if the original file has been changed.
-                    # If not, no need to compress again.
-                    full_compressed_path = self.path(dest_compressor_path)
-                    try:
-                        dest_mtime = self._datetime_from_timestamp(
-                            getmtime(full_compressed_path))
-                        file_is_unmodified = dest_mtime.replace(
-                            microsecond=0) >= src_mtime.replace(microsecond=0)
-                    except FileNotFoundError:
-                        file_is_unmodified = False
-                    if file_is_unmodified:
-                        continue
+                source_storage, path = paths[name]
 
-                    # Delete old gzip file, or Nginx will pick the old file to serve.
-                    # Note: Django won't overwrite the file, so we have to delete it ourselves.
-                    if self.exists(dest_compressor_path):
-                        self.delete(dest_compressor_path)
-                    out = compressor.compress(path, file)
+                # Process if file is big enough
+                if os.path.getsize(self.path(path)) < self.minimum_kb * 1024:
+                    continue
+                src_mtime = source_storage.get_modified_time(path)
+                dest_path = self._get_dest_path(path)
+                with self._open(dest_path) as file:
+                    new_file = file
+                    if not path.startswith('admin') and not path.startswith('node_modules'):
+                        new_path = self._minify(file, dest_path, name)
+                        new_file = self._open(new_path)
+                       
+                    for compressor in self.compressors:
+                        dest_compressor_path = "{}.{}".format(
+                            dest_path, compressor.extension)
+                        # Check if the original file has been changed.
+                        # If not, no need to compress again.
+                        full_compressed_path = self.path(dest_compressor_path)
+                        try:
+                            dest_mtime = self._datetime_from_timestamp(
+                                getmtime(full_compressed_path))
+                            file_is_unmodified = dest_mtime.replace(
+                                microsecond=0) >= src_mtime.replace(microsecond=0)
+                        except FileNotFoundError:
+                            file_is_unmodified = False
+                        if file_is_unmodified:
+                            continue
 
-                    if out:
-                        self._save(dest_compressor_path, out)
-                        if not self.keep_original:
-                            self.delete(name)
-                        yield dest_path, dest_compressor_path, True
+                        # Delete old gzip file, or Nginx will pick the old file to serve.
+                        # Note: Django won't overwrite the file, so we have to delete it ourselves.
+                        if self.exists(dest_compressor_path):
+                            self.delete(dest_compressor_path)
+                        out = compressor.compress(path, new_file)
 
-                    file.seek(0)
+                        if out:
+                            self._save(dest_compressor_path, out)
+                            if not self.keep_original:
+                                self.delete(name)
+                            yield dest_path, dest_compressor_path, True
+
+                        new_file.seek(0)
 
     def _create_json_file(self, file):
-        if file.endswith('.css'):
-            if file not in self.exclude_css_files:
-                with self._open(file) as current_file:
-                    read_css_file = current_file.read().decode('utf-8').strip()
+        if file.endswith('.css') and file not in self.exclude_css_files:
+            with self._open(file) as current_file:
+                read_css_file = current_file.read().decode('utf-8').strip()
 
-                    # To remove quotes in css
-                    remove_unwanted_css_fragments = re.sub(re.compile(
-                        "[\'\"].*?[\'\"]", re.DOTALL), '', read_css_file)
+                # To remove quotes in css
+                remove_unwanted_css_fragments = re.sub(re.compile(
+                    "[\'\"].*?[\'\"]", re.DOTALL), '', read_css_file)
 
-                    # To remove stream of comments
-                    remove_unwanted_css_fragments = re.sub(re.compile(
-                        "/\*.*?\*/", re.DOTALL), '', remove_unwanted_css_fragments)
-                            
-                    # To remove single line comments
-                    remove_unwanted_css_fragments = re.sub(re.compile(
-                        "//.*?\n"), '', remove_unwanted_css_fragments)
+                # To remove stream of comments
+                remove_unwanted_css_fragments = re.sub(re.compile(
+                    "/\*.*?\*/", re.DOTALL), '', remove_unwanted_css_fragments)
+                        
+                # To remove single line comments
+                remove_unwanted_css_fragments = re.sub(re.compile(
+                    "//.*?\n"), '', remove_unwanted_css_fragments)
 
-                    regex = re.compile(
-                        r'\.-?[_a-zA-Z]+[_a-zA-Z0-9-]*[^#+@+,+.+)+/+(+^+:+!+{+~+ +}+\'+\"+>+<+^+[+]')
+                regex = re.compile(
+                    r'\.-?[_a-zA-Z]+[_a-zA-Z0-9-]*[^#+@+,+.+)+/+(+^+:+!+{+~+ +}+\'+\"+>+<+^+[+]')
 
-                    all_classes = regex.findall(
-                        remove_unwanted_css_fragments)
-                    for class_instance in all_classes:
-                        word = class_instance[1:]
-                        self.collection_of_classes.append(word)
+                all_classes = regex.findall(
+                    remove_unwanted_css_fragments)
+                for class_instance in all_classes:
+                    word = class_instance[1:]
+                    self.collection_of_classes.append(word)
 
         if file.endswith('.svg'):
             with self._open(file) as current_file:
@@ -199,39 +388,38 @@ class CompressMixin:
                     for class_name in class_instance[7:-1].split():
                         self.collection_of_classes.append(class_name)
                 
-        if file.endswith('.js'):
-            if not file in self.exclude_js_files:
-                with self._open(file) as current_file:
-                    read_js_file = current_file.read().decode('utf-8').strip()
+        if file.endswith('.js') and not file in self.exclude_js_files:
+            with self._open(file) as current_file:
+                read_js_file = current_file.read().decode('utf-8').strip()
 
-                    query_selector_regex = re.compile(
-                        r'querySelector\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
-                    query_selector_classname = query_selector_regex.findall(
-                        read_js_file)
+                query_selector_regex = re.compile(
+                    r'querySelector\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
+                query_selector_classname = query_selector_regex.findall(
+                    read_js_file)
 
-                    query_selector_all_regex = re.compile(
-                        r'querySelectorAll\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
-                    query_selector_all_classname = query_selector_all_regex.findall(
-                        read_js_file)
+                query_selector_all_regex = re.compile(
+                    r'querySelectorAll\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
+                query_selector_all_classname = query_selector_all_regex.findall(
+                    read_js_file)
 
-                    get_element_by_classname_regex = re.compile(
-                        r'getElementsByClassName\([\'\"]([^)]+)[\'\"]\)')
-                    get_elements_by_classes = get_element_by_classname_regex.findall(
-                        read_js_file)
+                get_element_by_classname_regex = re.compile(
+                    r'getElementsByClassName\([\'\"]([^)]+)[\'\"]\)')
+                get_elements_by_classes = get_element_by_classname_regex.findall(
+                    read_js_file)
 
-                    get_just_class_from_selectors = re.compile(
-                        r'\.[_a-zA-Z]+[_a-zA-Z0-9-]*')
-                    get_query_selector_class_name = get_just_class_from_selectors.findall(
-                        ''.join(query_selector_classname))
+                get_just_class_from_selectors = re.compile(
+                    r'\.[_a-zA-Z]+[_a-zA-Z0-9-]*')
+                get_query_selector_class_name = get_just_class_from_selectors.findall(
+                    ''.join(query_selector_classname))
 
-                    get_query_selector_all_class_name = get_just_class_from_selectors.findall(
-                        ''.join(query_selector_all_classname))
+                get_query_selector_all_class_name = get_just_class_from_selectors.findall(
+                    ''.join(query_selector_all_classname))
 
-                    for instance in get_query_selector_all_class_name:
-                        self.collection_of_classes.append(instance[1:])
+                for instance in get_query_selector_all_class_name:
+                    self.collection_of_classes.append(instance[1:])
 
-                    for instance in get_query_selector_class_name:
-                        self.collection_of_classes.append(instance[1:])
+                for instance in get_query_selector_class_name:
+                    self.collection_of_classes.append(instance[1:])
 
     
     def _json_creation(self):
