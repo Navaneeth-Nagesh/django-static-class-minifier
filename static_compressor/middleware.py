@@ -5,6 +5,7 @@ import json
 from django.conf import settings
 
 class MinifyClassMiddleware:
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -22,8 +23,8 @@ class MinifyClassMiddleware:
                 with open(self.json_file_name) as f:
                     self.data = json.load(f)
             except:
-                print('{file_name} file is not found'.format(file_name=self.json_file_name))
-
+                print('{file_name} file is not found'.format(
+                    file_name=self.json_file_name))
 
     def __call__(self, request):
         response = self.get_response(request)
@@ -31,14 +32,17 @@ class MinifyClassMiddleware:
 
         def process_request(self, request):
             pass
-       
+
+        if request.path.endswith('js') or request.path.endswith('json') or request.path.endswith('css'):
+            return response
+
         if not request.get_full_path().startswith('/admin') and not request.get_full_path() in self.not_allowed_url_minification and self.should_minify:
             class_regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
             style_regex = re.compile(r'<style(.*?)</style>')
 
             all_inline_styles = style_regex.findall(content)
             all_class_attributes = class_regex.findall(content)
-            
+
             for inline_style in all_inline_styles:
                 original_style = inline_style
 
@@ -55,4 +59,9 @@ class MinifyClassMiddleware:
                 new_attribute = 'class="' + \
                     ' '.join(minified_classes_in_attribute) + '"'
                 content = re.sub(class_attribute, new_attribute, content)
-        return HttpResponse(content)
+
+            new_response = HttpResponse(content.encode())
+            new_response['Content-Length'] = str(len(new_response.content))
+            return new_response
+
+        return response
