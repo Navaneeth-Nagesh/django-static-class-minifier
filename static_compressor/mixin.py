@@ -60,6 +60,9 @@ class CompressMixin:
         self.exclude_svg_files = getattr(
             settings, "EXCLUDE_STATIC_SVG_FILES", [])
 
+        self.exclude_static_directory = getattr(
+            settings, "EXCLUDE_STATIC_DIRECTORY", [])
+
         self.json_file_name = getattr(
             settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
 
@@ -299,7 +302,7 @@ class CompressMixin:
             return
 
         for path in paths.keys():
-            if not path.startswith('admin'):
+            if not path.startswith('admin') or path.split('\\')[0] not in self.exclude_static_directory:
                 self._create_json_file(path)
 
         self._json_creation()
@@ -314,7 +317,7 @@ class CompressMixin:
                 dest_path = self._get_dest_path(path)
                 with self._open(dest_path) as file:
                     new_file = file
-                    if not path.startswith('admin'):
+                    if not path.startswith('admin') or path.split('\\')[0] not in self.exclude_static_directory:
                         new_path = self._minify(file, dest_path, name)
                         new_file = self._open(new_path)
 

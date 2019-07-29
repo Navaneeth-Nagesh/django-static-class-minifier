@@ -10,7 +10,7 @@ class MinifyClassMiddleware:
         self.get_response = get_response
 
         self.not_allowed_url_minification = getattr(
-            settings, "EXCLUDE_URL_MINIFIFICATION", [])
+            settings, "EXCLUDE_URL_MINIFICATION", [])
 
         self.should_minify = getattr(
             settings, "MINIFY_CLASS_HTML", False)

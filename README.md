@@ -29,8 +29,11 @@ In Middleware -
 ```
 MIDDLEWARE = [
 'django.middleware.security.SecurityMiddleware',
-'static_compressor.middleware.MinifyClassMiddleware', # Add this line, right after security middleware.
 'django.contrib.sessions.middleware.SessionMiddleware',
+'django.middleware.common.CommonMiddleware',
+'django.middleware.csrf.CsrfViewMiddleware',
+'static_compressor.middleware.MinifyClassMiddleware', # Add this line, right after csrf middleware.
+'django.contrib.auth.middleware.AuthenticationMiddleware',
 ```
 
 Make sure, you have set up path of static files and static root directory.
@@ -77,23 +80,37 @@ You can also add support to your own backend by applying `static_compressor.stat
 By default it will only compress files ending with `.js`, `.css` and `.svg`. This is controlled by the settings below.
 
 ### Settings
+
 _django-static-class-minifier_ settings and their default values:
 
 ```
-EXCLUDE_STATIC_JS_FILES = [''] # exclude libraries from classnames minifier
+EXCLUDE_STATIC_JS_FILES = [''] # exclude js libraries from classnames minifier
 EXCLUDE_STATIC_CSS_FILES = ['']
 EXCLUDE_STATIC_SVG_FILES = ['']
-EXCLUDE_URL_MINIFIFICATION = ['']
-MINIFY_CLASS_HTML =  False # Change it to True in production environment
+EXCLUDE_STATIC_DIRECTORY = ['']
+EXCLUDE_URL_MINIFICATION = ['']
+EXCLUDED_CLASSNAMES_FROM_MINIFYING = ['']
+MINIFY_CLASS_HTML = False # Change it to True in production environment
 # By default, the admin files classes won't be minified.
 STATIC_CLASSES_FILE_NAME = 'data.json' # It should be an json file
-EXCLUDED_CLASSNAMES_FROM_MINIFYING = ['']
 
 STATIC_COMPRESS_FILE_EXTS = ['js', 'css', 'svg']
 STATIC_COMPRESS_METHODS = ['gz', 'br']
 STATIC_COMPRESS_KEEP_ORIGINAL = True
 STATIC_COMPRESS_MIN_SIZE_KB = 30
 ```
+Default values types and description -
+
+|Settings|Type  | Description|
+|--|--|--|
+|EXCLUDE_STATIC_JS_FILES| _Array_ |These js files will be excluded from classnames shortening, In other words the class names won't be changed. |
+|EXCLUDE_STATIC_CSS_FILES|_Array_|Same as above but for css files.
+|EXCLUDE_STATIC_SVG_FILES| _Array_| Same as above but for svg files |
+|EXCLUDE_STATIC_DIRECTORY| _Array_| The directory name in the array will be excluded from class names shortening.|
+|EXCLUDE_URL_MINIFICATION|_Array_| The URL in the array will exclude from shortening of class names.
+|EXCLUDED_CLASSNAMES_FROM_MINIFYING|_Array_| The words in an array won't be shortened.
+|MINIFY_CLASS_HTML|_Boolean_| If its True it minifies class names in the HTML. Make sure there is JSON file or it will throws an error.
+|STATIC_CLASSES_FILE_NAME|_String_| The JSON file name. By default its data.json
 
 ### File size reduction
 ```
