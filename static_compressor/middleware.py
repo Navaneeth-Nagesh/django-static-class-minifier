@@ -18,6 +18,9 @@ class MinifyClassMiddleware:
         self.json_file_name = getattr(
             settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
 
+        self.inline_style = getattr(
+            settings, "STATIC_INLINE_CSS", False)
+
         if self.should_minify:
             try:
                 with open(self.json_file_name) as f:
@@ -38,20 +41,21 @@ class MinifyClassMiddleware:
 
         if not request.get_full_path().startswith('/admin') and not request.get_full_path() in self.not_allowed_url_minification and self.should_minify:
             class_regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
-            style_regex = re.compile(r'<style(.*?)</style>')
-
-            all_inline_styles = style_regex.findall(content)
             all_class_attributes = class_regex.findall(content)
 
-            for inline_style in all_inline_styles:
-                original_style = inline_style
+            if self.inline_style:
+                style_regex = re.compile(r'<style(.*?)</style>')
+                all_inline_styles = style_regex.findall(content)
 
-                for (key, value) in self.data.items():
-                    inline_style = re.sub(r'\.{key}'.format(
-                        key=re.escape(key)), '.{value}'.format(value=value), inline_style)
+                for inline_style in all_inline_styles:
+                    original_style = inline_style
 
-                content = re.sub(r'{key}'.format(
-                    key=re.escape(original_style)), inline_style, content)
+                    for (key, value) in self.data.items():
+                        inline_style = re.sub(r'\.{key}'.format(
+                            key=re.escape(key)), '.{value}'.format(value=value), inline_style)
+
+                    content = re.sub(r'{key}'.format(
+                        key=re.escape(original_style)), inline_style, content)
 
             for class_attribute in all_class_attributes:
                 minified_classes_in_attribute = [

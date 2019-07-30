@@ -112,6 +112,10 @@ Default values types and description -
 |MINIFY_CLASS_HTML|_Boolean_| If its True it minifies class names in the HTML. Make sure there is JSON file or it will throws an error.
 |STATIC_CLASSES_FILE_NAME|_String_| The JSON file name. By default its data.json
 
+### Resources
+
+In case, If you want to Internal style or Internal load script in the HTML. Then consider using [Django Inline Static](https://pypi.org/project/django-inline-static/) package.  
+
 ### File size reduction
 ```
 Original file - 100k style.css

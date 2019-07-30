@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="django-static-class-minifier",
-    version="0.0.8",
+    version="0.0.9",
     url="https://github.com/Navaneeth-Nagesh/django-static-class-minifier",
     author="Navaneeth Nagesh",
     author_email="navaneethnagesh56@gmail.com",
@@ -16,7 +16,7 @@ setup(
     packages=find_packages(exclude=["tests"]),
     keywords="Django, class-minifier, compressor, pre-processor",
     include_package_data=True,
-    install_requires=["Django", "Brotli~=1.0.4", "zopfli~=0.1.4"],
+    install_requires=["Django", "Brotli~=1.0.4", "zopfli~=0.1.4", "yaspin~=0.14.3"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",

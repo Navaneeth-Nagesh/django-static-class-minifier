@@ -15,6 +15,8 @@ from django.contrib.staticfiles.storage import StaticFilesStorage
 
 from static_compressor import compressors
 
+from yaspin import yaspin
+
 __all__ = ["CompressMixin"]
 
 
@@ -301,63 +303,78 @@ class CompressMixin:
         if dry_run:
             return
 
-        for path in paths.keys():
-            if not path.startswith('admin') or path.split('\\')[0] not in self.exclude_static_directory:
-                self._create_json_file(path)
+        with yaspin(text="Collecting all static files", color="cyan") as sp:
 
-        self._json_creation()
-       
-        with open(self.json_file_name) as f:
-            self.data = json.load(f)
+            for path in paths.keys():
+                if not path.startswith('admin') or path.split('\\')[0] not in self.exclude_static_directory:
+                    self._create_json_file(path)
 
-            for name in paths.keys():
+            self._json_creation()
 
-                source_storage, path = paths[name]
-                
-                dest_path = self._get_dest_path(path)
-                with self._open(dest_path) as file:
-                    new_file = file
-                    if not path.startswith('admin') or path.split('\\')[0] not in self.exclude_static_directory:
-                        new_path = self._minify(file, dest_path, name)
-                        new_file = self._open(new_path)
+            sp.write('> Initialized {file_name} file!'.format(
+                file_name=self.json_file_name))
 
-                    if not self._is_file_allowed(name):
-                        continue
+            all_directories = list()
+        
+            with open(self.json_file_name) as f:
+                self.data = json.load(f)
 
-                    # Process if file is big enough
-                    if os.path.getsize(self.path(path)) < self.minimum_kb * 1024:
-                        continue
+                for name in paths.keys():
 
-                    src_mtime = source_storage.get_modified_time(path)
-                    for compressor in self.compressors:
-                        dest_compressor_path = "{}.{}".format(
-                            dest_path, compressor.extension)
-                        # Check if the original file has been changed.
-                        # If not, no need to compress again.
-                        full_compressed_path = self.path(dest_compressor_path)
-                        try:
-                            dest_mtime = self._datetime_from_timestamp(
-                                getmtime(full_compressed_path))
-                            file_is_unmodified = dest_mtime.replace(
-                                microsecond=0) >= src_mtime.replace(microsecond=0)
-                        except FileNotFoundError:
-                            file_is_unmodified = False
-                        if file_is_unmodified:
+                    source_storage, path = paths[name]
+                    
+                    dest_path = self._get_dest_path(path)
+                    with self._open(dest_path) as file:
+                        new_file = file
+                        current_directory = path.split('\\')[0]
+                        if not path.startswith('admin') or current_directory not in self.exclude_static_directory:
+                            new_path = self._minify(file, dest_path, name)
+                            new_file = self._open(new_path)
+
+                        if current_directory not in all_directories:
+                            sp.write('> {directory_name} directory files are compressing...'.format(
+                                directory_name=current_directory))
+                            all_directories.append(current_directory)
+
+                        if not self._is_file_allowed(name):
                             continue
 
-                        # Delete old gzip file, or Nginx will pick the old file to serve.
-                        # Note: Django won't overwrite the file, so we have to delete it ourselves.
-                        if self.exists(dest_compressor_path):
-                            self.delete(dest_compressor_path)
-                        out = compressor.compress(path, new_file)
+                        # Process if file is big enough
+                        if os.path.getsize(self.path(path)) < self.minimum_kb * 1024:
+                            continue
 
-                        if out:
-                            self._save(dest_compressor_path, out)
-                            if not self.keep_original:
-                                self.delete(name)
-                            yield dest_path, dest_compressor_path, True
+                        src_mtime = source_storage.get_modified_time(path)
+                        for compressor in self.compressors:
+                            dest_compressor_path = "{}.{}".format(
+                                dest_path, compressor.extension)
+                            # Check if the original file has been changed.
+                            # If not, no need to compress again.
+                            full_compressed_path = self.path(dest_compressor_path)
+                            try:
+                                dest_mtime = self._datetime_from_timestamp(
+                                    getmtime(full_compressed_path))
+                                file_is_unmodified = dest_mtime.replace(
+                                    microsecond=0) >= src_mtime.replace(microsecond=0)
+                            except FileNotFoundError:
+                                file_is_unmodified = False
+                            if file_is_unmodified:
+                                continue
 
-                        new_file.seek(0)
+                            # Delete old gzip file, or Nginx will pick the old file to serve.
+                            # Note: Django won't overwrite the file, so we have to delete it ourselves.
+                            if self.exists(dest_compressor_path):
+                                self.delete(dest_compressor_path)
+                            out = compressor.compress(path, new_file)
+
+                            if out:
+                                self._save(dest_compressor_path, out)
+                                if not self.keep_original:
+                                    self.delete(name)
+                                yield dest_path, dest_compressor_path, True
+
+                            new_file.seek(0)
+
+            sp.ok("✔")
 
     def _create_json_file(self, file):
         if file.endswith('.css') and file not in self.exclude_css_files:
