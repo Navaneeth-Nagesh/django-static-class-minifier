@@ -46,9 +46,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'all_staticfiles')
 ```
 Update the static files storage:
 
-`STATICFILES_STORAGE = 'static_compressor.staticfiles_storage.CompressedStaticFilesStorage'`
+```
+STATICFILES_STORAGE = 'static_compressor.staticfiles_storage.CompressedStaticFilesStorage'
+```
+*Run the below command instead of 'python manage.py collectstatic'*
 
-When you run `$ python manage.py collectstatic` it will have an additional post-processing pass to compress your static files and it creates data.json file which contains classes from all included css files and js files.
+```
+$ python manage.py collectstatic_compressed
+```
+
+When you run `$ python manage.py collectstatic_compressed` it will have an additional post-processing pass to compress your static files and it creates data.json file which contains classes from all included css files and js files.
 
 The class selectors which js files consider and change -
 ```

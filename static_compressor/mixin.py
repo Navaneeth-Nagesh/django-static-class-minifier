@@ -7,7 +7,6 @@ import re
 import os
 from os.path import getatime, getctime, getmtime
 import errno
-import shutil
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
@@ -75,9 +74,6 @@ class CompressMixin:
                                    'svg', 'com', 'in', 'css', 'add', 'contains', 'remove', 'toggle', 'move', 'fonts', 'static', 'gstatic', 'manager', 'tag', 'google']
 
         self.not_included_words = self.not_included_words_by_users + self.not_included_words_by_default
-
-        if os.path.exists(self.static_root) and os.path.isdir(self.static_root):
-            shutil.rmtree(self.static_root)
 
         valid = [i for i in self.compress_methods if i in METHOD_MAPPING]
         if not valid:
@@ -304,6 +300,9 @@ class CompressMixin:
             return
 
         with yaspin(text="Collecting all static files", color="cyan") as sp:
+
+            sp.write('> Initializing {file_name} file!'.format(
+                file_name=self.json_file_name))
 
             for path in paths.keys():
                 if not path.startswith('admin') or path.split('\\')[0] not in self.exclude_static_directory:
