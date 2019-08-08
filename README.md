@@ -49,10 +49,10 @@ Update the static files storage:
 ```
 STATICFILES_STORAGE = 'static_compressor.staticfiles_storage.CompressedStaticFilesStorage'
 ```
-*Run the below command instead of 'python manage.py collectstatic'*
+*Run the below command and make sure static_root folder is deleted before running the command.*
 
 ```
-$ python manage.py collectstatic_compressed
+$ python manage.py collectstatic
 ```
 
 When you run `$ python manage.py collectstatic_compressed` it will have an additional post-processing pass to compress your static files and it creates data.json file which contains classes from all included css files and js files.
