@@ -313,7 +313,7 @@ class CompressMixin:
             sp.write('> Initialized {file_name} file!'.format(
                 file_name=self.json_file_name))
 
-            all_directories = list()
+            all_directories = set()
         
             with open(self.json_file_name) as f:
                 self.data = json.load(f)
@@ -333,7 +333,7 @@ class CompressMixin:
                         if current_directory not in all_directories:
                             sp.write('> {directory_name} directory files are compressing...'.format(
                                 directory_name=current_directory))
-                            all_directories.append(current_directory)
+                            all_directories.add(current_directory)
 
                         if not self._is_file_allowed(name):
                             continue

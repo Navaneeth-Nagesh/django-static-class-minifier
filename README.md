@@ -52,10 +52,10 @@ STATICFILES_STORAGE = 'static_compressor.staticfiles_storage.CompressedStaticFil
 *Run the below command instead of 'python manage.py collectstatic'*
 
 ```
-$ python manage.py collectstatic_compressed
+$ python manage.py collectstatic_compress
 ```
 
-When you run `$ python manage.py collectstatic_compressed` it will have an additional post-processing pass to compress your static files and it creates data.json file which contains classes from all included css files and js files.
+When you run `$ python manage.py collectstatic_compress` it will have an additional post-processing pass to compress your static files and it creates data.json file which contains classes from all included css files and js files.
 
 The class selectors which js files consider and change -
 ```
