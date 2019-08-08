@@ -49,7 +49,7 @@ Update the static files storage:
 ```
 STATICFILES_STORAGE = 'static_compressor.staticfiles_storage.CompressedStaticFilesStorage'
 ```
-*Run the below command instead of 'python manage.py collectstatic'*
+*Run the below command and make sure static_root folder is deleted before running the command.*
 
 ```
 $ python manage.py collectstatic_compress
