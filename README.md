@@ -101,6 +101,12 @@ MINIFY_CLASS_HTML = False # Change it to True in production environment
 # By default, the admin files classes won't be minified.
 STATIC_CLASSES_FILE_NAME = 'data.json' # It should be an json file
 
+# Incase, Inside your app if there is static directory then include it in STATIC_INCLUDE_DIRS
+
+STATIC_INCLUDE_DIRS = (
+    os.path.join(BASE_DIR, 'faq/static'), # Example : The app name be faq
+)
+
 STATIC_COMPRESS_FILE_EXTS = ['js', 'css', 'svg']
 STATIC_COMPRESS_METHODS = ['gz', 'br']
 STATIC_COMPRESS_KEEP_ORIGINAL = True
@@ -117,7 +123,8 @@ Default values types and description -
 |EXCLUDE_URL_MINIFICATION|_Array_| The URL in the array will exclude from shortening of class names.
 |EXCLUDED_CLASSNAMES_FROM_MINIFYING|_Array_| The words in an array won't be shortened.
 |MINIFY_CLASS_HTML|_Boolean_| If its True it minifies class names in the HTML. Make sure there is JSON file or it will throws an error.
-|STATIC_CLASSES_FILE_NAME|_String_| The JSON file name. By default its data.json
+|STATIC_CLASSES_FILE_NAME|_String_| The JSON file name. By default its data.json|
+|STATIC_INCLUDE_DIRS|_Tuple_| Includes static directory inside the app.|
 
 ### Resources
 

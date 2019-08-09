@@ -41,9 +41,6 @@ class CompressMixin:
         # defining DJANGO_SETTINGS_MODULE.
         from django.conf import settings
 
-        self.frequency = dict()
-        self.collection_of_classes = list()
-
         self.allowed_extensions = getattr(
             settings, "STATIC_COMPRESS_FILE_EXTS", ["js", "css", "svg"])
         self.compress_methods = getattr(
@@ -301,18 +298,6 @@ class CompressMixin:
 
         with yaspin(text="Collecting all static files", color="cyan") as sp:
 
-            sp.write('> Initializing {file_name} file!'.format(
-                file_name=self.json_file_name))
-
-            for path in paths.keys():
-                if not path.startswith('admin') or path.split('\\')[0] not in self.exclude_static_directory:
-                    self._create_json_file(path)
-
-            self._json_creation()
-
-            sp.write('> Initialized {file_name} file!'.format(
-                file_name=self.json_file_name))
-
             all_directories = set()
         
             with open(self.json_file_name) as f:
@@ -326,12 +311,14 @@ class CompressMixin:
                     with self._open(dest_path) as file:
                         new_file = file
                         current_directory = path.split('\\')[0]
-                        if not path.startswith('admin') or current_directory not in self.exclude_static_directory:
+                    
+                        if current_directory != 'admin' and current_directory not in self.exclude_static_directory:
+                            
                             new_path = self._minify(file, dest_path, name)
                             new_file = self._open(new_path)
 
                         if current_directory not in all_directories:
-                            sp.write('> {directory_name} directory files are compressing...'.format(
+                            sp.write('> {directory_name} is compressing...'.format(
                                 directory_name=current_directory))
                             all_directories.add(current_directory)
 
@@ -375,103 +362,6 @@ class CompressMixin:
 
             sp.ok("✔")
 
-    def _create_json_file(self, file):
-        if file.endswith('.css') and file not in self.exclude_css_files:
-            with self._open(file) as current_file:
-                read_css_file = current_file.read().decode('utf-8').strip()
-
-                # To remove quotes in css
-                remove_unwanted_css_fragments = re.sub(re.compile(
-                    "[\'\"].*?[\'\"]", re.DOTALL), '', read_css_file)
-
-                # To remove stream of comments
-                remove_unwanted_css_fragments = re.sub(re.compile(
-                    "/\*.*?\*/", re.DOTALL), '', remove_unwanted_css_fragments)
-                        
-                # To remove single line comments
-                remove_unwanted_css_fragments = re.sub(re.compile(
-                    "//.*?\n"), '', remove_unwanted_css_fragments)
-
-                regex = re.compile(
-                    r'\.-?[_a-zA-Z]+[_a-zA-Z0-9-]*[^#+@+,+.+)+/+(+^+:+!+{+~+ +}+\'+\"+>+<+^+[+]')
-
-                all_classes = regex.findall(
-                    remove_unwanted_css_fragments)
-                for class_instance in all_classes:
-                    word = class_instance[1:]
-                    self.collection_of_classes.append(word)
-
-        if file.endswith('.svg'):
-            if file not in self.exclude_svg_files:
-                with self._open(file) as current_file:
-                    read_svg_file = current_file.read().decode('utf-8').strip()
-
-                    regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
-                    all_classes = regex.findall(read_svg_file)
-                    for class_instance in all_classes:
-                        for class_name in class_instance[7:-1].split():
-                            self.collection_of_classes.append(class_name)
-                
-        if file.endswith('.js') and not file in self.exclude_js_files:
-            with self._open(file) as current_file:
-                read_js_file = current_file.read().decode('utf-8').strip()
-
-                query_selector_regex = re.compile(
-                    r'querySelector\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
-                query_selector_classname = query_selector_regex.findall(
-                    read_js_file)
-
-                query_selector_all_regex = re.compile(
-                    r'querySelectorAll\([\'\"][^\'\"]*?\.[^\'\"]*?[\'\"]\)')
-                query_selector_all_classname = query_selector_all_regex.findall(
-                    read_js_file)
-
-                get_element_by_classname_regex = re.compile(
-                    r'getElementsByClassName\([\'\"]([^)]+)[\'\"]\)')
-                get_elements_by_classes = get_element_by_classname_regex.findall(
-                    read_js_file)
-
-                get_just_class_from_selectors = re.compile(
-                    r'\.[_a-zA-Z]+[_a-zA-Z0-9-]*')
-                get_query_selector_class_name = get_just_class_from_selectors.findall(
-                    ''.join(query_selector_classname))
-
-                get_query_selector_all_class_name = get_just_class_from_selectors.findall(
-                    ''.join(query_selector_all_classname))
-
-                for instance in get_query_selector_all_class_name:
-                    self.collection_of_classes.append(instance[1:])
-
-                for instance in get_query_selector_class_name:
-                    self.collection_of_classes.append(instance[1:])
-
-    
-    def _json_creation(self):
-        for word in self.collection_of_classes:
-            class_instance = word.strip()
-
-            if not word in self.not_included_words:
-                if not class_instance in self.frequency:
-                    self.frequency[class_instance] = 0
-                self.frequency[class_instance] += 1
-
-        length_of_frequency = len(self.frequency)
-
-        sorted_by_value = dict(
-            sorted(self.frequency.items(), key=lambda x: x[1], reverse=True))
-
-        for (generated_code_word, key) in zip(itertools.islice(self.iter_all_strings(), length_of_frequency), sorted_by_value.keys()):
-            sorted_by_value[key] = generated_code_word
-
-        sorted_by_key_length = dict(
-            sorted(sorted_by_value.items(), key=lambda x: len(x[0]), reverse=True))
-        
-        with open(self.json_file_name, 'w') as outfile:
-            json.dump(sorted_by_key_length, outfile,
-                      indent=4, separators=(',', ':'))
-
-        print('created {file_name} file!'.format(file_name=self.json_file_name))
-
     def _get_dest_path(self, path):
         if hasattr(self, "hashed_name"):
             return self.hashed_name(path)
@@ -483,8 +373,3 @@ class CompressMixin:
             if file.endswith("." + extension):
                 return True
         return False
-    
-    def iter_all_strings(self):
-        for size in itertools.count(start=1):
-            for s in itertools.product(ascii_lowercase, repeat=size):
-                yield "".join(s)
