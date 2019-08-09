@@ -104,7 +104,7 @@ STATIC_CLASSES_FILE_NAME = 'data.json' # It should be an json file
 # Incase, Inside your app if there is static directory then include it in STATIC_INCLUDE_DIRS
 
 STATIC_INCLUDE_DIRS = (
-    os.path.join(BASE_DIR, 'faq/static'), # Example : The app name be faq
+    os.path.join(BASE_DIR, 'faq/static'), # Example : Let the app name be faq
 )
 
 STATIC_COMPRESS_FILE_EXTS = ['js', 'css', 'svg']

@@ -46,10 +46,10 @@ class Command(BaseCommand):
             settings, "STATIC_ROOT", None)
 
         self.default_static_dir = getattr(
-            settings, "STATICFILES_DIRS", None)
+            settings, "STATICFILES_DIRS", tuple())
 
         self.include_static_dir = getattr(
-            settings, "STATIC_INCLUDE_DIRS", None)
+            settings, "STATIC_INCLUDE_DIRS", tuple())
 
         self.static_dir = self.include_static_dir + self.default_static_dir
 
