@@ -299,17 +299,6 @@ class Command(BaseCommand):
         print("The staticfiles directories look up and minifying {static_file_directories}".format(
             static_file_directories=self.static_dir))
 
-        for directory in self.static_dir:
-            for root, dirs, files in os.walk(directory):
-                for file in files:
-                    self._create_json_file(file, root)
-        
-        self._json_creation()
-
-        message.append(
-            'Initialized {file_name} json file'.format(file_name=self.json_file_name)
-        )
-
         if self.is_local_storage() and self.storage.location:
             destination_path = self.storage.location
             message.append(':\n\n    %s\n\n' % destination_path)
@@ -340,6 +329,18 @@ class Command(BaseCommand):
             # Delete the static folder
             if os.path.exists(self.static_root) and os.path.isdir(self.static_root):
                 shutil.rmtree(self.static_root)
+
+        for directory in self.static_dir:
+            for root, dirs, files in os.walk(directory):
+                for file in files:
+                    self._create_json_file(file, root)
+
+        self._json_creation()
+
+        message.append(
+            'Initialized {file_name} json file'.format(
+                file_name=self.json_file_name)
+        )
     
         collected = self.collect()
         modified_count = len(collected['modified'])
