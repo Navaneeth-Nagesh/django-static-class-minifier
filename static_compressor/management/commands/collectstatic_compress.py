@@ -4,6 +4,7 @@ import itertools
 import re
 from string import ascii_lowercase
 import json
+from collections import OrderedDict
 
 from django.apps import apps
 from django.contrib.staticfiles.finders import get_finders
@@ -268,13 +269,13 @@ class Command(BaseCommand):
 
         length_of_frequency = len(self.frequency)
 
-        sorted_by_value = dict(
+        sorted_by_value = OrderedDict(
             sorted(self.frequency.items(), key=lambda x: x[1], reverse=True))
 
         for (generated_code_word, key) in zip(itertools.islice(self.iter_all_strings(), length_of_frequency), sorted_by_value.keys()):
             sorted_by_value[key] = generated_code_word
 
-        sorted_by_key_length = dict(
+        sorted_by_key_length = OrderedDict(
             sorted(sorted_by_value.items(), key=lambda x: len(x[0]), reverse=True))
 
         with open(self.json_file_name, 'w') as outfile:

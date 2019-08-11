@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="django-static-class-minifier",
-    version="0.1.3",
+    version="0.1.4",
     url="https://github.com/Navaneeth-Nagesh/django-static-class-minifier",
     author="Navaneeth Nagesh",
     author_email="navaneethnagesh56@gmail.com",
