@@ -269,17 +269,17 @@ class Command(BaseCommand):
 
         length_of_frequency = len(self.frequency)
 
+        sorted_values_by_order = OrderedDict(
+            sorted(self.frequency.items(), key=lambda x: x[0], reverse=False))
+
         sorted_by_value = OrderedDict(
-            sorted(self.frequency.items(), key=lambda x: x[1], reverse=True))
+            sorted(sorted_values_by_order.items(), key=lambda x: x[1], reverse=True))
 
         for (generated_code_word, key) in zip(itertools.islice(self.iter_all_strings(), length_of_frequency), sorted_by_value.keys()):
             sorted_by_value[key] = generated_code_word
 
-        sorted_keys_by_alphabetical_order = OrderedDict(
-            sorted(sorted_by_value.items(), key=lambda x: x[0], reverse=False))
-
         sorted_by_key_length = OrderedDict(
-            sorted(sorted_keys_by_alphabetical_order.items(), key=lambda x: len(x[0]), reverse=True))
+            sorted(sorted_by_value.items(), key=lambda x: len(x[0]), reverse=True))
 
         with open(self.json_file_name, 'w') as outfile:
             json.dump(sorted_by_key_length, outfile,

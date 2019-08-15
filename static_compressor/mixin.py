@@ -7,6 +7,7 @@ import re
 import os
 from os.path import getatime, getctime, getmtime
 import errno
+from collections import OrderedDict
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
@@ -301,7 +302,7 @@ class CompressMixin:
             all_directories = set()
         
             with open(self.json_file_name) as f:
-                self.data = json.load(f)
+                self.data = json.load(f, object_pairs_hook=OrderedDict)
 
                 for name in paths.keys():
 
