@@ -1,7 +1,10 @@
 import re
+import errno
+import os
+import json
+
 from django.template.response import TemplateResponse
 from django.http import HttpResponse
-import json
 from django.conf import settings
 
 class MinifyClassMiddleware:
@@ -26,8 +29,8 @@ class MinifyClassMiddleware:
                 with open(self.json_file_name) as f:
                     self.data = json.load(f)
             except:
-                print('{file_name} file is not found'.format(
-                    file_name=self.json_file_name))
+                raise FileNotFoundError(
+                    errno.ENOENT, os.strerror(errno.ENOENT), self.json_file_name + '. Please run python manage.py collectstatic_compress to create {filename} file'.format(filename=self.json_file_name))
 
     def __call__(self, request):
         response = self.get_response(request)
