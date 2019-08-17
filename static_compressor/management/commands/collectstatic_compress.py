@@ -2,7 +2,7 @@ import os
 import shutil
 import itertools
 import re
-from string import ascii_lowercase
+from string import ascii_lowercase, ascii_uppercase, ascii_letters
 import json
 from collections import OrderedDict
 
@@ -14,6 +14,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.management.color import no_style
 from django.utils.functional import cached_property
 from django.conf import settings
+
 
 class Command(BaseCommand):
     """
@@ -65,6 +66,36 @@ class Command(BaseCommand):
 
         self.not_included_words = self.not_included_words_by_users + \
             self.not_included_words_by_default
+
+        self.salt_value = getattr(
+            settings, "CLASS_SALT_VALUE", ascii_lowercase)
+
+        if not isinstance(self.salt_value, str):
+            raise Exception(
+                'Check the type of SALT_VALUE, It should be an String')
+
+        special_characters_regex = re.compile(r'[@!#$%^&*()<>?/\|}{~:]')
+
+        if(special_characters_regex.search(self.salt_value) != None):
+            raise Exception(
+                'SALT_VALUE should not contain any special characters')
+
+        number_characters_regex = re.compile(r'\d')
+
+        if(number_characters_regex.search(self.salt_value) != None):
+            raise Exception(
+                'SALT_VALUE should not contain any numbers')
+
+        if len(self.salt_value) < 8:
+            raise Exception(
+                'The length of the SALT_VALUE should be greater then 8')
+
+        if self.salt_value == 'ascii_lowercase':
+            self.salt_value = ascii_lowercase
+        elif self.salt_value == 'ascii_uppercase':
+            self.salt_value = ascii_uppercase
+        elif self.salt_value == 'ascii_letters':
+            self.salt_value = ascii_letters
 
     @cached_property
     def local(self):
@@ -188,7 +219,7 @@ class Command(BaseCommand):
 
     def iter_all_strings(self):
         for size in itertools.count(start=1):
-            for s in itertools.product(ascii_lowercase, repeat=size):
+            for s in itertools.product(self.salt_value, repeat=size):
                 yield "".join(s)
 
     def _create_json_file(self, file, root):
@@ -344,7 +375,7 @@ class Command(BaseCommand):
             'Initialized {file_name} json file'.format(
                 file_name=self.json_file_name)
         )
-    
+
         collected = self.collect()
         modified_count = len(collected['modified'])
         unmodified_count = len(collected['unmodified'])

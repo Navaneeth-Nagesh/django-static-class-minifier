@@ -34,15 +34,17 @@ class MinifyClassMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        content = response.content.decode('utf-8')
 
         def process_request(self, request):
             pass
 
-        if request.path.endswith('js') or request.path.endswith('json') or request.path.endswith('css'):
-            return response
-
         if not request.get_full_path().startswith('/admin') and not request.get_full_path() in self.not_allowed_url_minification and self.should_minify:
+            
+            if request.path.endswith('js') or request.path.endswith('json') or request.path.endswith('css'):
+                return response
+
+            content = response.content.decode('utf-8')
+
             class_regex = re.compile(r'class[ \t]*=[ \t]*"[^"]+"')
             all_class_attributes = class_regex.findall(content)
 
