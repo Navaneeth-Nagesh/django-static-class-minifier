@@ -101,7 +101,7 @@ MINIFY_CLASS_HTML = False # Change it to True in production environment
 # By default, the admin files classes won't be minified.
 STATIC_CLASSES_FILE_NAME = 'data.json' # It should be an json file
 
-CLASS_SALT_VALUE = 'ascii_lowercase' # Choices - 'ascii_lowercase' or 'ascii_uppercase' or 'ascii_letters' or custom characters. The custom characters should not contain special characters or numbers and the length of salt should be greater then 8. Example : CLASS_SALT_VALUE = '_abcdefghijk'.
+CLASS_SALT_VALUE = 'ascii_lowercase' # Choices - 'ascii_lowercase' or 'ascii_uppercase' or 'ascii_letters' or custom characters. The custom characters should not contain special characters and the length of salt should be greater then 8. Example : CLASS_SALT_VALUE = '_abcdefghijk123'.
 
 # Incase, Inside your app if there is static directory then include it in STATIC_INCLUDE_DIRS
 
@@ -127,7 +127,7 @@ Default values types and description -
 |MINIFY_CLASS_HTML|_Boolean_| If its True it minifies class names in the HTML. Make sure there is JSON file or it will throws an error.
 |STATIC_CLASSES_FILE_NAME|_String_| The JSON file name. By default its data.json|
 |STATIC_INCLUDE_DIRS|_Tuple_| Includes static directory inside the app.|
-|CLASS_SALT_VALUE|_String_|Choices - 'ascii_lowercase' or 'ascii_uppercase' or 'ascii_letters' or custom characters. The custom characters should not contain special characters or numbers and the length of salt should be greater then 8. Example : CLASS_SALT_VALUE = '_abcdefghijk'.|
+|CLASS_SALT_VALUE|_String_|Choices - 'ascii_lowercase' or 'ascii_uppercase' or 'ascii_letters' or custom characters. The custom characters should not contain special characters and the length of salt should be greater then 8. Example : CLASS_SALT_VALUE = '_abcdefghijk123'.|
 
 ### Resources
 

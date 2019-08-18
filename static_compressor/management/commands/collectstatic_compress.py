@@ -74,12 +74,6 @@ class Command(BaseCommand):
             raise Exception(
                 'CLASS_SALT_VALUE should not contain any special characters')
 
-        number_characters_regex = re.compile(r'\d')
-
-        if(number_characters_regex.search(self.salt_value) != None):
-            raise Exception(
-                'CLASS_SALT_VALUE should not contain any numbers')
-
         if len(self.salt_value) < 8:
             raise Exception(
                 'The length of the CLASS_SALT_VALUE should be greater then 8')
@@ -88,10 +82,15 @@ class Command(BaseCommand):
 
         if self.salt_value != 'ascii_lowercase' and self.salt_value != 'ascii_uppercase' and self.salt_value != 'ascii_letters':
             for char in self.salt_value:
-                if not char in salt_characters:
-                    salt_characters.append(char)
+                if char != ' ':
+                    if not char in salt_characters:
+                        salt_characters.append(char)
+                    else:
+                        raise Exception(
+                            'The CLASS_SALT_VALUE has repeated characters, make sure the characters are unique')
                 else:
-                    raise Exception('The CLASS_SALT_VALUE has repeated characters, make sure the characters are unique')
+                    raise Exception(
+                        'The CLASS_SALT_VALUE should not contain any SPACES or NEWLINE')
 
         if self.salt_value == 'ascii_lowercase':
             self.salt_value = ascii_lowercase
@@ -223,7 +222,8 @@ class Command(BaseCommand):
     def iter_all_strings(self):
         for size in itertools.count(start=1):
             for s in itertools.product(self.salt_value, repeat=size):
-                yield "".join(s)
+                if "".join(s)[0].isdigit() == False:
+                    yield "".join(s)
 
     def _create_json_file(self, file, root):
         if file.endswith('.css') and file not in self.exclude_css_files:
