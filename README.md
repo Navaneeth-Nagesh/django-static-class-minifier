@@ -91,17 +91,17 @@ By default it will only compress files ending with `.js`, `.css` and `.svg`. Thi
 _django-static-class-minifier_ settings and their default values:
 
 ```
-EXCLUDE_STATIC_JS_FILES = [''] # exclude js libraries from classnames minifier
-EXCLUDE_STATIC_CSS_FILES = ['']
-EXCLUDE_STATIC_SVG_FILES = ['']
-EXCLUDE_STATIC_DIRECTORY = ['']
-EXCLUDE_URL_MINIFICATION = ['']
-EXCLUDED_CLASSNAMES_FROM_MINIFYING = ['']
+EXCLUDE_STATIC_JS_FILES = [] # exclude js libraries from classnames minifier
+EXCLUDE_STATIC_CSS_FILES = []
+EXCLUDE_STATIC_SVG_FILES = []
+EXCLUDE_STATIC_DIRECTORY = []
+EXCLUDE_URL_MINIFICATION = []
+EXCLUDED_CLASSNAMES_FROM_MINIFYING = []
 MINIFY_CLASS_HTML = False # Change it to True in production environment
 # By default, the admin files classes won't be minified.
 STATIC_CLASSES_FILE_NAME = 'data.json' # It should be an json file
 
-CLASS_SALT_VALUE = 'ascii_lowercase' # Choices - 'ascii_lowercase' or 'ascii_uppercase' or 'ascii_letters' or custom characters. The custom characters should not contain special characters or numbers and the length of salt should be greater then 8. Example : SALT_VALUE = '_abcdefghijk'.
+CLASS_SALT_VALUE = 'ascii_lowercase' # Choices - 'ascii_lowercase' or 'ascii_uppercase' or 'ascii_letters' or custom characters. The custom characters should not contain special characters or numbers and the length of salt should be greater then 8. Example : CLASS_SALT_VALUE = '_abcdefghijk'.
 
 # Incase, Inside your app if there is static directory then include it in STATIC_INCLUDE_DIRS
 

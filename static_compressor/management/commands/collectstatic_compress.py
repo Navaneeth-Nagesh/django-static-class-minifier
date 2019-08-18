@@ -58,14 +58,8 @@ class Command(BaseCommand):
         self.json_file_name = getattr(
             settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
 
-        self.not_included_words_by_users = getattr(
+        self.not_included_words = getattr(
             settings, "EXCLUDED_CLASSNAMES_FROM_MINIFYING", [])
-
-        self.not_included_words_by_default = ['ttf', 'woff2', 'www', 'woff', 'js', 'otf', 'eot',
-                                              'svg', 'com', 'in', 'css', 'add', 'contains', 'remove', 'toggle', 'move', 'fonts', 'static', 'gstatic', 'manager', 'tag', 'google']
-
-        self.not_included_words = self.not_included_words_by_users + \
-            self.not_included_words_by_default
 
         self.salt_value = getattr(
             settings, "CLASS_SALT_VALUE", ascii_lowercase)
@@ -78,17 +72,26 @@ class Command(BaseCommand):
 
         if(special_characters_regex.search(self.salt_value) != None):
             raise Exception(
-                'SALT_VALUE should not contain any special characters')
+                'CLASS_SALT_VALUE should not contain any special characters')
 
         number_characters_regex = re.compile(r'\d')
 
         if(number_characters_regex.search(self.salt_value) != None):
             raise Exception(
-                'SALT_VALUE should not contain any numbers')
+                'CLASS_SALT_VALUE should not contain any numbers')
 
         if len(self.salt_value) < 8:
             raise Exception(
-                'The length of the SALT_VALUE should be greater then 8')
+                'The length of the CLASS_SALT_VALUE should be greater then 8')
+
+        salt_characters = list()
+
+        if self.salt_value != 'ascii_lowercase' and self.salt_value != 'ascii_uppercase' and self.salt_value != 'ascii_letters':
+            for char in self.salt_value:
+                if not char in salt_characters:
+                    salt_characters.append(char)
+                else:
+                    raise Exception('The CLASS_SALT_VALUE has repeated characters, make sure the characters are unique')
 
         if self.salt_value == 'ascii_lowercase':
             self.salt_value = ascii_lowercase

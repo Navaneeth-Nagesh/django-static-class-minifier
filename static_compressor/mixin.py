@@ -59,19 +59,28 @@ class CompressMixin:
         self.exclude_svg_files = getattr(
             settings, "EXCLUDE_STATIC_SVG_FILES", [])
 
+        if not len(self.exclude_js_files) == 0:
+            for js_file in self.exclude_js_files:
+                if not js_file.endswith('.js'):
+                    raise Exception('NOT A VALID JS FILE')
+
+        if not len(self.exclude_css_files) == 0:
+            for css_file in self.exclude_css_files:
+                if not css_file.endswith('.css'):
+                    raise Exception('NOT A VALID CSS FILE')
+
+        if not len(self.exclude_svg_files) == 0:
+            for svg_file in self.exclude_svg_files:
+                if not svg_file.endswith('.svg'):
+                    raise Exception('NOT A VALID SVG FILE')
+
         self.exclude_static_directory = getattr(
             settings, "EXCLUDE_STATIC_DIRECTORY", [])
 
         self.json_file_name = getattr(
             settings, "STATIC_CLASSES_FILE_NAME", 'data.json')
 
-        self.not_included_words_by_users = getattr(
-            settings, "EXCLUDED_CLASSNAMES_FROM_MINIFYING", [])
-
-        self.not_included_words_by_default = ['ttf', 'woff2', 'www', 'woff', 'js', 'otf', 'eot',
-                                   'svg', 'com', 'in', 'css', 'add', 'contains', 'remove', 'toggle', 'move', 'fonts', 'static', 'gstatic', 'manager', 'tag', 'google']
-
-        self.not_included_words = self.not_included_words_by_users + self.not_included_words_by_default
+        self.css_quoted_salt = '1234567890!@#$%^&*-+_|abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
         valid = [i for i in self.compress_methods if i in METHOD_MAPPING]
         if not valid:
@@ -135,6 +144,11 @@ class CompressMixin:
 
         return dictionary
 
+    def iter_all_strings(self):
+        for size in itertools.count(start=1):
+            for s in itertools.product(self.css_quoted_salt, repeat=size):
+                yield "".join(s)
+
     def _minify(self, file, destination, original_file):
         if destination.endswith('.css') or original_file.endswith('.css') and original_file not in self.exclude_css_files:
             read_css_file = file.read().decode('utf-8')
@@ -148,9 +162,33 @@ class CompressMixin:
             read_css_file = re.sub(re.compile(
                 "/\*.*?\*/", re.DOTALL), '', read_css_file)
 
+            quoted = dict()
+
+            quotes_regex = re.compile(
+                r'[\'\"].*?[\'\"]')
+            quoted_texts = quotes_regex.findall(
+                read_css_file)
+
+            for instance in quoted_texts:
+                if not instance in quoted:
+                    quoted[instance] = 0
+                quoted[instance] += 1
+
+            for (generated_code_word, key) in zip(itertools.islice(self.iter_all_strings(), len(quoted)), quoted.keys()):
+                quoted[key] = generated_code_word
+                read_css_file = re.sub(r'{sentence}'.format(
+                    sentence=key), '"' + generated_code_word + '"', read_css_file)
+
+            sorted_quoted = OrderedDict(
+                sorted(quoted.items(), key=lambda x: len(x[0]), reverse=True))
+
             for (key, value) in self.data.items():
                 read_css_file = re.sub(r'\.{key}'.format(
                     key=re.escape(key)), '.{value}'.format(value=re.escape(value)), read_css_file)
+
+            for (key, value) in sorted_quoted.items():
+                read_css_file = re.sub(r'[\'\"]{value}[\'\"]'.format(
+                    value=re.escape(value)), '{key}'.format(key=key), read_css_file)
 
             content_file = ContentFile(read_css_file.encode())
             self._save(original_file, content_file)
