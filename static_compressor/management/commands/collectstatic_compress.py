@@ -219,10 +219,10 @@ class Command(BaseCommand):
             'post_processed': self.post_processed_files,
         }
 
-    def iter_all_strings(self):
+    def iter_all_strings(self, sorted_by_value):
         for size in itertools.count(start=1):
             for s in itertools.product(self.salt_value, repeat=size):
-                if "".join(s)[0].isdigit() == False:
+                if "".join(s)[0].isdigit() == False and not "".join(s) in sorted_by_value:
                     yield "".join(s)
 
     def _create_json_file(self, file, root):
@@ -309,7 +309,7 @@ class Command(BaseCommand):
         sorted_by_value = OrderedDict(
             sorted(sorted_values_by_order.items(), key=lambda x: x[1], reverse=True))
 
-        for (generated_code_word, key) in zip(itertools.islice(self.iter_all_strings(), length_of_frequency), sorted_by_value.keys()):
+        for (generated_code_word, key) in zip(itertools.islice(self.iter_all_strings(sorted_by_value), length_of_frequency), sorted_by_value.keys()):
             sorted_by_value[key] = generated_code_word
 
         sorted_by_key_length = OrderedDict(
