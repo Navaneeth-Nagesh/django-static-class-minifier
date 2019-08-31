@@ -2,7 +2,7 @@
 
 ### Description
 
-The class minifier package shortens the class name in the DOM to single character and reduces the file size. more about the algorithm in the upcoming blog post.
+The class minifier package shortens the class name in the DOM to single character and reduces the file size.
 
 End result : ![Alt](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/snaps/example.JPG?raw=true  "Example")
 
@@ -49,13 +49,13 @@ Update the static files storage:
 ```
 STATICFILES_STORAGE = 'static_compressor.staticfiles_storage.CompressedStaticFilesStorage'
 ```
-*Run the below command and make sure static_root folder is deleted before running the command.*
+*Run the below command in your terminal.*
 
 ```
 $ python manage.py collectstatic_compress
 ```
 
-When you run `$ python manage.py collectstatic_compress` it will have an additional post-processing pass to compress your static files and it creates data.json file which contains classes from all included css files and js files.
+When you run `$ python manage.py collectstatic_compress` it will have an additional post-processing pass to compress your static files and it creates *data.json* file which contains classes from all included css and js files.
 
 The class selectors which js files consider and change -
 ```
@@ -67,7 +67,7 @@ classList.remove('active');
 classList.toggle('active');
 ```
 
-If your adding classes to the DOM based on http response or a common function which appends class to the dom, then consider excluding those files. Right now that's the limitation of this project. In the future, There might be a syntax to consider those classes.
+If your adding classes to the DOM based on http response or a common function which appends class to the DOM, then consider excluding those words. Use *EXCLUDED_CLASSNAMES_FROM_MINIFYING* setting attribute and include those words in an array.
 
 Make sure that your web server is configured to serve precompressed static files:
 
