@@ -2,7 +2,7 @@
 # Django Static class minifier
 
   
-[![Alt](https://camo.githubusercontent.com/2b5c48821f22738887c98a07f95852b610fb555b/68747470733a2f2f696d672e736869656c64732e696f2f61706d2f6c2f61746f6d69632d64657369676e2d75692e7376673f?raw=true  "MIT License")](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/LICENSE)  [![Alt](https://camo.githubusercontent.com/5536e335426d79f50ee2d88b57d6c108074992d7/68747470733a2f2f696d672e736869656c64732e696f2f707970692f707976657273696f6e732f7974326d70332e737667?raw=true  "Python 3")](https://pypi.org/project/django-static-class-minifier/) [![Alt](https://camo.githubusercontent.com/f12fbc1a9f48db714fa9e3fcc1e7a2c163d01bcd/68747470733a2f2f7472617669732d63692e6f72672f6d6f6363752f646a616e676f2d696e6c696e652d7374617469632e7376673f6272616e63683d6d6173746572?raw=true  "Build Passing")](https://pypi.org/project/django-static-class-minifier/) [![Alt](https://camo.githubusercontent.com/20eaa0afa205181685fcb1a6a396f5652f026b1a/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f636f64652532306f662d636f6e647563742d6666363962342e7376673f7374796c653d666c6174?raw=true  "Code of Conduct")]() [![Alt](https://camo.githubusercontent.com/614c7585c82b25086d62bfe7745aa9f765291151/68747470733a2f2f72656164746865646f63732e6f72672f70726f6a656374732f7974326d70332f62616467652f3f76657273696f6e3d6c6174657374?raw=true  "Docs Passing")](https://github.com/Navaneeth-Nagesh/django-static-class-minifier) 
+[![Alt](https://camo.githubusercontent.com/2b5c48821f22738887c98a07f95852b610fb555b/68747470733a2f2f696d672e736869656c64732e696f2f61706d2f6c2f61746f6d69632d64657369676e2d75692e7376673f?raw=true  "MIT License")](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/LICENSE)  [![Alt](https://camo.githubusercontent.com/5536e335426d79f50ee2d88b57d6c108074992d7/68747470733a2f2f696d672e736869656c64732e696f2f707970692f707976657273696f6e732f7974326d70332e737667?raw=true  "Python 3")](https://pypi.org/project/django-static-class-minifier/) [![Alt](https://camo.githubusercontent.com/f12fbc1a9f48db714fa9e3fcc1e7a2c163d01bcd/68747470733a2f2f7472617669732d63692e6f72672f6d6f6363752f646a616e676f2d696e6c696e652d7374617469632e7376673f6272616e63683d6d6173746572?raw=true  "Build Passing")](https://pypi.org/project/django-static-class-minifier/) [![Alt](https://camo.githubusercontent.com/20eaa0afa205181685fcb1a6a396f5652f026b1a/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f636f64652532306f662d636f6e647563742d6666363962342e7376673f7374796c653d666c6174?raw=true  "Code of Conduct")](https://github.com/Navaneeth-Nagesh/django-static-class-minifier/blob/master/docs/CODE_OF_CONDUCT.md) [![Alt](https://camo.githubusercontent.com/614c7585c82b25086d62bfe7745aa9f765291151/68747470733a2f2f72656164746865646f63732e6f72672f70726f6a656374732f7974326d70332f62616467652f3f76657273696f6e3d6c6174657374?raw=true  "Docs Passing")](https://github.com/Navaneeth-Nagesh/django-static-class-minifier) 
 
 ### Description
 
@@ -226,35 +226,21 @@ STATIC_COMPRESS_MIN_SIZE_KB = 30
 
 ```
 
-### Default Config :
+### Configuration Types :
 
 |Settings|Type | Description|
-
-|--|--|--|
-
+|---|---|---|
 |EXCLUDE_STATIC_JS_FILES| _Array_ |These js files will be excluded from classnames shortening, In other words the class names won't be changed. |
-
 |EXCLUDE_STATIC_CSS_FILES|_Array_|Same as above but for css files.
-
 |EXCLUDE_STATIC_SVG_FILES| _Array_| Same as above but for svg files |
-
 |EXCLUDE_STATIC_DIRECTORY| _Array_| The directory name in the array will be excluded from class names shortening.|
-
 |EXCLUDE_URL_MINIFICATION|_Array_| The URL in the array will exclude from shortening of class names.
-
 |EXCLUDED_CLASSNAMES_FROM_MINIFYING|_Array_| The words in an array won't be shortened.
-
 |MINIFY_CLASS_HTML|_Boolean_| If its True it minifies class names in the HTML. Make sure there is JSON file or it will throws an error.
-
 |STATIC_CLASSES_FILE_NAME|_String_| The JSON file name. By default its data.json|
-
 |STATIC_INCLUDE_DIRS|_Tuple_| Includes static directory inside the app.|
-
 |CLASS_SALT_VALUE|_String_|Choices - 'ascii_lowercase' or 'ascii_uppercase' or 'ascii_letters' or custom characters. The custom characters should not contain special characters and the length of salt should be greater then 8. Example : CLASS_SALT_VALUE = '_abcdefghijk123'.|
-  
 
-
-  
 
 ### File size reduction
 
